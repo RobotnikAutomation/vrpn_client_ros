@@ -1,6 +1,18 @@
 <launch>
 
   <arg name="server" default="localhost"/>
+  <!-- Depending on which camera configuration you desire you should change frame_id value
+
+      There are two possible camera configuration:
+        1. Cameras outside the robot. The cameras will track the points placed on top of the robot.
+           For this reason, *frame_id* can be set as world.
+
+        2. Cameras moving along with the robot. The cameras will track a fixed frame in a position in order
+           to perform a docking action. *frame_id* should be the frame name used for docking when using the optitrack
+           for example: optitrack_robot_dock_link
+
+   -->
+  <arg name="frame_id" default="world"/>
 
   <node pkg="vrpn_client_ros" type="vrpn_client_node" name="vrpn_client_node" output="screen">
     <rosparam subst_value="true">
@@ -8,7 +20,7 @@
       port: 3883
 
       update_frequency: 100.0
-      frame_id: world
+      frame_id: $(arg frame_id)
 
       # Use the VRPN server's time, or the client's ROS time.
       use_server_time: false
@@ -21,5 +33,16 @@
       #- SecondTracker
     </rosparam>
   </node>
+
+  <!-- If you are using the first configuration then you should uncomment the line below 
+       You should change the default position to the actual position of the marker in the robot.
+       The name 'RigidBody' could be changed from Motive app (in Windows) whenever you create a rigid body.
+  -->
+  <!-- node name="optitrack_world_to_base_link" pkg="tf" type="static_transform_publisher" respawn="false" output="screen" args="0 0 0 0 0 0 RigidBody robot_base_link 100"/ -->
+
+  <!-- If you are using the second configuration then you should uncomment the line below 
+       You should change the default position to the actual position between robot_base_link and the optitrack_robot_dock_link in the robot
+  -->
+  <node name="optitrack_to_base_link" pkg="tf" type="static_transform_publisher" respawn="false" output="screen" args="0.8 0 0 0 0 0 robot_base_link $(arg frame_id) 100"/>
 
 </launch>
